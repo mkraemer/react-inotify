@@ -24,8 +24,8 @@ After initializing the class, you can use the add() method to add paths to the l
 $loop = React\EventLoop\Factory::create();
 $inotify = new MKraemer\ReactInotify\Inotify($loop);
 
-$inotify->add('/tmp/', IN_CLOSE_WRITE + IN_CREATE + IN_DELETE);
-$inotify->add('/var/log/', IN_CLOSE_WRITE + IN_CREATE + IN_DELETE);
+$inotify->add('/tmp/', IN_CLOSE_WRITE | IN_CREATE | IN_DELETE);
+$inotify->add('/var/log/', IN_CLOSE_WRITE | IN_CREATE | IN_DELETE);
 
 $inotify->on(IN_CLOSE_WRITE, function ($path) {
     echo 'File closed after writing: '.$path.PHP_EOL;
