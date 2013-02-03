@@ -32,7 +32,7 @@ class Inotify extends EventEmitter
         $this->inotifyHandler = \inotify_init();
         stream_set_blocking($this->inotifyHandler, 0);
 
-        $this->watchDescriptors = [];
+        $this->watchDescriptors = array();
 
         $loop->addPeriodicTimer($interval, $this);
     }
@@ -46,7 +46,7 @@ class Inotify extends EventEmitter
         if (false !== ($events = \inotify_read($this->inotifyHandler))) {
             foreach ($events as $event) {
                 $path = $this->watchDescriptors[$event['wd']]['path'];
-                $this->emit($event['mask'], [$path.$event['name']]);
+                $this->emit($event['mask'], array($path . $event['name']));
             }
         }
     }
@@ -60,6 +60,6 @@ class Inotify extends EventEmitter
     public function add($path, $mask)
     {
         $descriptor = \inotify_add_watch($this->inotifyHandler, $path, $mask);
-        $this->watchDescriptors[$descriptor] = ['path' => $path];
+        $this->watchDescriptors[$descriptor] = array('path' => $path);
     }
 }
