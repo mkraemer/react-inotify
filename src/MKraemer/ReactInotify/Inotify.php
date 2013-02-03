@@ -59,7 +59,21 @@ class Inotify extends EventEmitter
      */
     public function add($path, $mask)
     {
+        if ($this->inotifyHandler === false) {
+            return;
+        }
         $descriptor = \inotify_add_watch($this->inotifyHandler, $path, $mask);
         $this->watchDescriptors[$descriptor] = array('path' => $path);
+    }
+
+    /**
+     * close the inotifyHandler
+     */
+    public function close()
+    {
+        if ($this->inotifyHandler !== false) {
+            fclose($this->inotifyHandler);
+            $this->inotifyHandler = false;
+        }
     }
 }
