@@ -3,7 +3,7 @@
 Basic inotify bindings for [React PHP](https://github.com/reactphp).
 
 ##Install
-This library requires PHP5.4 and the [inotify PECL extension](http://pecl.php.net/package/inotify).
+This library requires PHP5.3 and the [inotify PECL extension](http://pecl.php.net/package/inotify).
 The best way to install this library is through [composer](http://getcomposer.org):
 
 ```JSON
