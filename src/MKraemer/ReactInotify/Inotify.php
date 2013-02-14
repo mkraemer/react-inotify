@@ -11,14 +11,29 @@ use React\EventLoop\LoopInterface;
 class Inotify extends EventEmitter
 {
     /**
-     * @var resource
+     * @var resource|false
      */
-    protected $inotifyHandler;
+    protected $inotifyHandler = false;
 
     /**
      * @var array
      */
-    protected $watchDescriptors;
+    protected $watchDescriptors = array();
+    
+    /**
+     * @var LoopInterface
+     */
+    protected $loop;
+    
+    /**
+     * @var float
+     */
+    protected $interval;
+    
+    /**
+     * @var string
+     */
+    protected $timerId;
 
     /**
      * Constructor. Initializes the inotifyHandler and
@@ -29,12 +44,8 @@ class Inotify extends EventEmitter
      */
     public function __construct(LoopInterface $loop, $interval = 0.1)
     {
-        $this->inotifyHandler = \inotify_init();
-        stream_set_blocking($this->inotifyHandler, 0);
-
-        $this->watchDescriptors = array();
-
-        $loop->addPeriodicTimer($interval, $this);
+        $this->loop = $loop;
+        $this->interval = $interval;
     }
 
     /**
@@ -60,20 +71,28 @@ class Inotify extends EventEmitter
     public function add($path, $mask)
     {
         if ($this->inotifyHandler === false) {
-            return;
+            // inotifyHandler not started yet => start a new one
+            $this->inotifyHandler = \inotify_init();
+            stream_set_blocking($this->inotifyHandler, 0);
+            
+            $this->timerId = $this->loop->addPeriodicTimer($this->interval, $this);
         }
         $descriptor = \inotify_add_watch($this->inotifyHandler, $path, $mask);
         $this->watchDescriptors[$descriptor] = array('path' => $path);
     }
 
     /**
-     * close the inotifyHandler
+     * close the inotifyHandler and clear all pending events (if any)
      */
     public function close()
     {
         if ($this->inotifyHandler !== false) {
+            $this->loop->cancelTimer($this->timerId);
+            
             fclose($this->inotifyHandler);
+            
             $this->inotifyHandler = false;
+            $this->watchDescriptors = array();
         }
     }
 }
