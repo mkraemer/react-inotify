@@ -67,6 +67,7 @@ class Inotify extends EventEmitter
      *
      * @param string  $path      Path to the watched file or directory
      * @param integer $mask      Bitmask of inotify constants
+     * @return integer unique watch identifier, can be used to remove() watch later
      */
     public function add($path, $mask)
     {
@@ -79,6 +80,21 @@ class Inotify extends EventEmitter
         }
         $descriptor = \inotify_add_watch($this->inotifyHandler, $path, $mask);
         $this->watchDescriptors[$descriptor] = array('path' => $path);
+        return $descriptor;
+    }
+    
+    /**
+     * remove/cancel the given watch identifier previously aquired via add()
+     * i.e. stop watching the associated path
+     * 
+     * @param integer $descriptor watch identifier previously returned from add()
+     */
+    public function remove($descriptor)
+    {
+        if (isset($this->watchDescriptors[$descriptor])) {
+            unset($this->watchDescriptors[$descriptor]);
+            \inotify_rm_watch($this->inotifyHandler, $descriptor);
+        }
     }
 
     /**
