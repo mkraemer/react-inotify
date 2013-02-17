@@ -56,8 +56,14 @@ class Inotify extends EventEmitter
     {
         if (false !== ($events = \inotify_read($this->inotifyHandler))) {
             foreach ($events as $event) {
-                $path = $this->watchDescriptors[$event['wd']]['path'];
-                $this->emit($event['mask'], array($path . $event['name']));
+                // make sure the watch descriptor assigned to this event is
+                // still valid. removing watch descriptors via 'remove()'
+                // implicitly sends a final event with mask IN_IGNORE set:
+                // http://php.net/manual/en/inotify.constants.php#constant.in-ignored
+                if (isset($this->watchDescriptors[$event['wd']])) {
+                    $path = $this->watchDescriptors[$event['wd']]['path'];
+                    $this->emit($event['mask'], array($path . $event['name']));
+                }
             }
         }
     }
