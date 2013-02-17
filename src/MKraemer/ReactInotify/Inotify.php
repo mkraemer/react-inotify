@@ -93,7 +93,14 @@ class Inotify extends EventEmitter
     {
         if (isset($this->watchDescriptors[$descriptor])) {
             unset($this->watchDescriptors[$descriptor]);
-            \inotify_rm_watch($this->inotifyHandler, $descriptor);
+            
+            if ($this->watchDescriptors) {
+                // there are still watch paths remaining => only remove this descriptor
+                \inotify_rm_watch($this->inotifyHandler, $descriptor);
+            } else {
+                // no more paths watched => close whole handler
+                $this->close();
+            }
         }
     }
 
