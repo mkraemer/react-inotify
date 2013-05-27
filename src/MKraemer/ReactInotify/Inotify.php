@@ -24,32 +24,21 @@ class Inotify extends EventEmitter
      * @var LoopInterface
      */
     protected $loop;
-    
-    /**
-     * @var float
-     */
-    protected $interval;
-    
-    /**
-     * @var string
-     */
-    protected $timerId;
 
     /**
-     * Constructor. Initializes the inotifyHandler and
-     * registers a periodicTimer in the eventLoop
+     * Constructor. Actual initialization takes place once first watched
+     * paths is registered during add()
      *
-     * @param React\EventLoop\LoopInterface $loop     Event Loop
-     * @param float                         $interval Interval in which new events should be read
+     * @param React\EventLoop\LoopInterface $loop Event Loop
+     * @see self::add()
      */
-    public function __construct(LoopInterface $loop, $interval = 0.1)
+    public function __construct(LoopInterface $loop)
     {
         $this->loop = $loop;
-        $this->interval = $interval;
     }
 
     /**
-     * Checks if new inotify events are available
+     * Checks all new inotify events available
      * and emits them via evenement
      */
     public function __invoke()
@@ -82,7 +71,8 @@ class Inotify extends EventEmitter
             $this->inotifyHandler = \inotify_init();
             stream_set_blocking($this->inotifyHandler, 0);
             
-            $this->timerId = $this->loop->addPeriodicTimer($this->interval, $this);
+            // wait for any file events by reading from inotify handler asynchronously
+            $this->loop->addReadStream($this->inotifyHandler, $this);
         }
         $descriptor = \inotify_add_watch($this->inotifyHandler, $path, $mask);
         $this->watchDescriptors[$descriptor] = array('path' => $path);
@@ -116,7 +106,7 @@ class Inotify extends EventEmitter
     public function close()
     {
         if ($this->inotifyHandler !== false) {
-            $this->loop->cancelTimer($this->timerId);
+            $this->loop->removeReadStream($this->inotifyHandler);
             
             fclose($this->inotifyHandler);
             
