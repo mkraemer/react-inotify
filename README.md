@@ -9,7 +9,7 @@ The best way to install this library is through [composer](http://getcomposer.or
 ```JSON
 {
     "require": {
-        "mkraemer/react-inotify": "1.0.0"
+        "mkraemer/react-inotify": "1.1.0"
     }
 }
 ```
