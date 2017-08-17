@@ -51,6 +51,7 @@ class Inotify extends EventEmitter
                 // http://php.net/manual/en/inotify.constants.php#constant.in-ignored
                 if (isset($this->watchDescriptors[$event['wd']])) {
                     $path = $this->watchDescriptors[$event['wd']]['path'];
+                    $path = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
                     $this->emit($event['mask'], array($path . $event['name']));
                 }
             }
